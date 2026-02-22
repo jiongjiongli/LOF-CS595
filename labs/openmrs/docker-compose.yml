@@ -1,13 +1,29 @@
 version: "3.7"
 
 services:
+  mysql:
+    image: mysql:8.0.39
+    container_name: openmrs-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: openmrs
+    ports:
+      - "3306:3306"  # optional, only if you want host access
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     image: openmrs/openmrs-reference-application-3-backend:${TAG:-qa}
     environment:
       OMRS_CONFIG_MODULE_WEB_ADMIN: "true"
       OMRS_CONFIG_AUTO_UPDATE_DATABASE: "true"
       OMRS_CONFIG_CREATE_TABLES: "true"
-      OMRS_CONFIG_CONNECTION_SERVER: host.docker.internal
+      OMRS_CONFIG_CONNECTION_SERVER: mysql # points to MySQL container
       OMRS_CONFIG_CONNECTION_DATABASE: openmrs
       OMRS_CONFIG_CONNECTION_USERNAME: root
       OMRS_CONFIG_CONNECTION_PASSWORD: password
@@ -45,3 +61,4 @@ services:
 
 volumes:
   openmrs-data:
+  mysql-data:
