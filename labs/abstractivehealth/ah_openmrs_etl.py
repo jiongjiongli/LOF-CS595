@@ -75,7 +75,47 @@ def create_openmrs_patient(patient_json):
         If failure:
             - print error text from response
     """
+    # Step 1: Extract Patient Data
+    full_name = patient_json.get("name", "").strip()
+    given_name, family_name = full_name.split()
+    gender = patient_json.get("gender", "")
+    birthdate = patient_json.get("birthDate")
+    # Step 2: Generate an OpenMRS Identifier
+    base_number = random.randint(10000, 99999)
+    openmrs_identifier = generate_openmrs_id(base_number)
+    # Step 3: Build the JSON Payload
+    payload = {
+        "person": {
+            "names": [
+                {
+                    "givenName": given_name,
+                    "familyName": family_name
+                }
+            ],
+            "gender": gender[0].upper() if gender else "",
+            "birthdate": birthdate,
+        },
+        "identifiers": [
+            {
+                "identifier": openmrs_identifier,
+                "identifierType": IDENTIFIER_TYPE_UUID,
+                "location": LOCATION_UUID,
+                "preferred": True
+            }
+        ]
+    }
+    # Step 4: Construct the REST Endpoint & Send the Request
+    url = f"{OPENMRS_BASE_URL}/patient"
+    # Step 5: Handle the Response
+    resp = session.post(url, json=payload)
 
+    if resp.status_code in [200, 201]:
+        patient_uuid = resp.json()["uuid"]
+        print(f"✅ Patient \"{given_name} {family_name}\" created (UUID: {patient_uuid})")
+        return patient_uuid
+    else:
+        print(f"❌ Failed to create patient: {resp.status_code} {resp.text}")
+        return None
 
 # ---------- Create Encounter ----------
 def create_encounter(patient_uuid):

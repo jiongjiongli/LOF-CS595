@@ -60,11 +60,18 @@ class AH_Services:
         5. Return the JSON response from the API.
         """
         # TODO: Step 1 - Define the URL for the API endpoint
-    
+        url = "https://api.abstractive.ai/retrieve-patient-docs"
         # TODO: Step 2 - Create the payload dictionary
-    
+        payload = {
+            "user_api_email": os.getenv("AH_EMAIL"),
+            "token": token,
+           "conversation_id": conversation_id,
+           "patient_id": patient_id,
+           "test": test,
+        }
         # TODO: Step 3 - Send the POST request to the API
-    
+        resp = requests.post(url, json=payload)
         # TODO: Step 4 - Handle any potential HTTP errors
-    
+        resp.raise_for_status()
         # TODO: Step 5 - Return the JSON response
+        return resp.json()
